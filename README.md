@@ -4,13 +4,15 @@
 
 Version 1.0 | February 2025
 
-RESTful API documentation for Donation and Offline Billers management system.
+API for Donation and Offline Billers
 
 ## 🔐 Authentication Flow
 
 ### 1. Biller Login
 
 **Endpoint:** POST http://localhost:3000/biller/login/
+
+**Request Body:**
 
 ```json
 {
@@ -28,7 +30,7 @@ RESTful API documentation for Donation and Offline Billers management system.
     "email": "mayukh@gmail.com",
     "billerName": "Normal Finance",
     "billerCategory": "offline",
-    "password": "$2b$10$6n.1Vs7QaGkv9LwZIdnsaemG6mdxfYO8OKdRhNf92t",
+    "password": "$2b$10$6n.1Vs7QaGkv9LwZIdnsaemG6mdxfYO8OKdRhNf92t3eVe5dSRhRy",
     "__v": 0
 }
 ```
@@ -38,9 +40,13 @@ RESTful API documentation for Donation and Offline Billers management system.
 
 </aside>
 
-### 2. Get Customer Details
+## 👥 Customer Management
+
+### 1. Get Customer Details
 
 **Endpoint:** GET http://localhost:3000/customer/
+
+**Request Body:**
 
 ```json
 {
@@ -48,44 +54,23 @@ RESTful API documentation for Donation and Offline Billers management system.
 }
 ```
 
-**Response:**
+### 2. File Upload 📤
 
-```json
-[
-    {
-        "_id": "67a08d4393db21ecd64fbfb1",
-        "customerName": "NADHIYA",
-        "customerIdentifier": "96-60-100308",
-        "billerId": "RFPL00000NATZB",
-        "bills": [
-            "67a08d4393db21ecd64fbfc0",
-            "67a0adebc1f5767c2940e6fc"
-        ],
-        "__v": 0
-    }
-]
-```
-
-<aside>
-⚠️ Important: Store customerId in frontend for bill retrieval
-
-</aside>
-
-## 📤 File Upload
-
-**Endpoint:** POST [http://localhost:3000/customer/upload/${billerId}](http://localhost:3000/customer/upload/$%7BbillerId%7D)
+**Endpoint:** POST http://localhost:3000/customer/upload/${billerId}
 
 **Body:** Form-data with file attachment
 
-### Features:
+Description:
 
 - Uploads customer file using billerId
 - Extracts and saves customer data with current bills
 - Automatically expires old bills for existing customers
 
-## 📃 Get Bills
+## 📃 Bill Management
 
-**Endpoint:** GET [http://localhost:3000/bills/${customerId}](http://localhost:3000/bills/$%7BcustomerId%7D)
+### 1. Get Bills
+
+**Endpoint:** GET http://localhost:3000/bills/${customerId}
 
 **Request Body:**
 
@@ -95,16 +80,32 @@ RESTful API documentation for Donation and Offline Billers management system.
 }
 ```
 
-**Description:**
+Description:
 
 - Set expired=true to retrieve expired bills
 - Set expired=false to retrieve active bills
+
+### 2. Filter Bills by Date Range
+
+**Endpoint:** GET http://localhost:3000/bills
+
+**Request Body:**
+
+```json
+{
+    "startDate": "2025-02-02",
+    "endDate": "2025-02-04",
+    "billerId": "RFPL00000NATZB"
+}
+```
 
 ## 💱 Transaction Flow
 
 ### 1. Create Transaction
 
 **Endpoint:** POST http://localhost:3000/transaction/
+
+**Request Body:**
 
 ```json
 {
@@ -117,11 +118,48 @@ RESTful API documentation for Donation and Offline Billers management system.
 }
 ```
 
-**Features:**
+### 2. Get Transactions
 
-- Receives transaction data from biller proxy server
-- Saves transaction information in database
-- Supports subsequent read and update operations
+**Endpoint:** GET http://localhost:3000/transaction/
+
+**Request Body:**
+
+```json
+{
+    "billerId": "RFPL00000NATZB"
+}
+```
+
+## System Architecture Diagram
+
+```mermaid
+%%{init: {'theme':'default', 'themeVariables': { 'primaryColor': '#ff7f50', 'primaryTextColor': '#fff', 'primaryBorderColor': '#ff6347', 'lineColor': '#f08080', 'secondaryColor': '#4169e1', 'tertiaryColor': '#32cd32'}}}%%
+graph TD
+    A[Client] --> B[Authentication API]
+    B --> C[Biller Login]
+    A --> D[Customer Management]
+    D --> E[Get Customer Details]
+    D --> F[File Upload]
+    A --> G[Bill Management]
+    G --> H[Get Bills]
+    G --> I[Filter Bills by Date]
+    A --> J[Transaction API]
+    J --> K[Create Transaction]
+    J --> L[Get Transactions]
+    
+    style A fill:#ff7f50,stroke:#ff6347,color:#fff
+    style B fill:#4169e1,stroke:#4169e1,color:#fff
+    style C fill:#32cd32,stroke:#32cd32,color:#fff
+    style D fill:#4169e1,stroke:#4169e1,color:#fff
+    style E fill:#32cd32,stroke:#32cd32,color:#fff
+    style F fill:#32cd32,stroke:#32cd32,color:#fff
+    style G fill:#4169e1,stroke:#4169e1,color:#fff
+    style H fill:#32cd32,stroke:#32cd32,color:#fff
+    style I fill:#32cd32,stroke:#32cd32,color:#fff
+    style J fill:#4169e1,stroke:#4169e1,color:#fff
+    style K fill:#32cd32,stroke:#32cd32,color:#fff
+    style L fill:#32cd32,stroke:#32cd32,color:#fff
+```
 
 ## 📞 Support
 
