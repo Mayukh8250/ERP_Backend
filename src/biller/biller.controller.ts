@@ -1,7 +1,11 @@
 /**
- * @file biller.controller.ts
- * @description This file contains the BillerController class which handles HTTP requests related to billers.
- * It includes endpoints for retrieving all billers, retrieving a specific biller by ID, and creating a new biller.
+ * Controller for handling biller-related operations.
+ * 
+ * This controller provides endpoints for:
+ * - Retrieving all billers or a specific biller by ID
+ * - Creating a new biller
+ * - Logging in with email and password
+ * 
  * The controller uses the BillerService to perform these operations.
  */
 
@@ -55,6 +59,7 @@ export class BillerController {
       if (!body.email || !body.password) {
         throw new BadRequestException('Missing email or password');
       }
+
       return await this.billerService.login(body.email, body.password);
     } catch (error) {
       console.error('Error during login:', error);

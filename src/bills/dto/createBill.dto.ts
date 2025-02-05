@@ -6,7 +6,6 @@ export class CreateBillDto {
     @IsNotEmpty()
     billAmount: number;
     
-    
     @IsString()
     @IsOptional()
     principleOs: String;
@@ -70,5 +69,5 @@ export class CreateBillDto {
     @IsString()
     @IsOptional()
     effectiveTo: String;
-  id: any;
+    id: any;
  }

@@ -12,15 +12,20 @@ import { Bill, BillDocument } from '../schema/bill.schema';
 import { CreateBillDto } from '../../../../dto/createBill.dto';
 import { BillRepository } from '../../bill.repositories';
 import { CreateBillDomain } from 'src/bills/domain/create-bill.domain';
-import {mapCustomerToResponse} from '../mappers/customerResponse.mapper'
+import { mapCustomerToResponse } from '../mappers/customerResponse.mapper';
 
 @Injectable()
 export class BillDocumentRepository implements BillRepository {
-  constructor(@InjectModel(Bill.name) private readonly billModel: Model<BillDocument>) {}
+  constructor(
+    @InjectModel(Bill.name) private readonly billModel: Model<BillDocument>,
+  ) {}
 
   // ✅ find all bills with or without filter (specific customer and expire boolean status)
   async findAll(filters: Record<string, any>): Promise<any[]> {
-    const billFind= await this.billModel.find(filters).populate('customer').exec();
+    const billFind = await this.billModel
+      .find(filters)
+      .populate('customer')
+      .exec();
     return billFind.map((customer) => mapCustomerToResponse(customer));
   }
 
@@ -29,12 +34,18 @@ export class BillDocumentRepository implements BillRepository {
     return this.billModel.findById(id).exec();
   }
 
-   // ✅ find filtered bills within a date range
-   async findFiltered(filters: Record<string, any>): Promise<any[]> {
-    const filteredBills= await this.billModel.find({
-      effectiveFrom: { $gte: new Date(filters.effectiveFrom.$gte).toISOString(), $lte: new Date(filters.effectiveFrom.$lte).toISOString() },
-      billerId: filters.billerId
-    }).populate('customer').exec();
+  // ✅ find filtered bills within a date range
+  async findFiltered(filters: Record<string, any>): Promise<any[]> {
+    const filteredBills = await this.billModel
+      .find({
+        effectiveFrom: {
+          $gte: new Date(filters.effectiveFrom.$gte).toISOString(),
+          $lte: new Date(filters.effectiveFrom.$lte).toISOString(),
+        },
+        billerId: filters.billerId,
+      })
+      .populate('customer')
+      .exec();
     return filteredBills.map((customer) => mapCustomerToResponse(customer));
   }
 
@@ -51,7 +62,9 @@ export class BillDocumentRepository implements BillRepository {
 
   // ✅ Update a bill with id passed
   async update(billId: string, bill: any): Promise<CreateBillDomain> {
-    const updatedBill = await this.billModel.findByIdAndUpdate(billId, bill, { new: true }).exec();
+    const updatedBill = await this.billModel
+      .findByIdAndUpdate(billId, bill, { new: true })
+      .exec();
     if (!updatedBill) {
       throw new Error('Bill not found');
     }
@@ -59,8 +72,10 @@ export class BillDocumentRepository implements BillRepository {
   }
 
   // ✅  update multiple bills
-  async updateMany(filter: any, updateBillDto: Partial<CreateBillDto>): Promise<void> {
+  async updateMany(
+    filter: any,
+    updateBillDto: Partial<CreateBillDto>,
+  ): Promise<void> {
     await this.billModel.updateMany(filter, updateBillDto).exec();
   }
-  
 }

@@ -1,3 +1,13 @@
+
+/**
+ * @fileoverview This file contains the TransactionService class, which provides methods for managing transactions
+ * in the application. The service interacts with the TransactionRepository, BillerRepository, and Customer model
+ * to perform CRUD operations on transactions. It includes methods for creating, finding, updating, and removing
+ * transactions, with appropriate validation and debugging.
+ * 
+ * @module TransactionService
+ */
+
 import { Injectable } from '@nestjs/common';
 import { TransactionRepository } from './infrastructure/persistance/transaction.repository';
 import { CreateTransactionDto } from './dto/createTransaction.dto';
@@ -6,6 +16,9 @@ import { Transaction } from './infrastructure/persistance/document/schema/transa
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Customer } from '../customer/insfrastructure/persistance/document/schema/customer.schema';
+import chalk from 'chalk';
+const debug = require('debug')('Donation:server');
+const className = chalk.cyanBright('Services --> Transaction');
 
 @Injectable()
 export class TransactionService {
@@ -28,11 +41,17 @@ export class TransactionService {
     });
 
     if (!customer) {
+      // ✅ Debugger
+      debug(`${className} Transaction created for Donation biller :${biller.billerName}, no customer find here`);
+      
       return this.transactionRepository.create({
         ...createTransactionDto,
         biller: biller._id,
       });
     };
+
+    // ✅ Debugger
+    debug(`${className} Transaction created for customer: ${customer.customerName} biller :${biller.billerName}`);
 
     // ✅ Create the transaction with references
     return this.transactionRepository.create({
@@ -48,8 +67,10 @@ export class TransactionService {
   }
 
   // ✅  Find single transaction
-  async findOne(id: string): Promise<Transaction | null> {
-    return this.transactionRepository.findById(id);
+  async findOne(billerId: string, type:string, customerIdentifier:string): Promise<Transaction | null> {
+    // ✅ Debugger
+    debug(`${className} Transaction found for billerId ${billerId}`)
+    return this.transactionRepository.findOne(billerId,type,customerIdentifier);
   }
 
   // ✅ update a transaction

@@ -4,6 +4,9 @@ import { CreateBillDto } from './dto/createBill.dto';
 import { LogsService } from '../logs/logs.service';
 import { Bill } from './infrastructure/persistance/document/schema/bill.schema';
 //import { mapCustomerToResponse } from './mapper/customerResponse.mapper';
+import chalk from 'chalk';
+const debug = require('debug')('Donation:server');
+const className = chalk.yellowBright('Services --> Bill');
 
 @Injectable()
 export class BillsService {
@@ -24,6 +27,8 @@ export class BillsService {
       `Fetched ${billFindMany.length} number of bills for customer id: ${customerId}`,
     );
 
+    debug(`${className} Fetched ${billFindMany.length} number of bills for customer id: ${customerId}`)
+
     // ✅ Converting into desired response
     return billFindMany
   }
@@ -31,7 +36,9 @@ export class BillsService {
   // ✅ Get filtered bills within a date range
   async findFiltered(startDate: string, endDate: string, billerId:string): Promise<any[]> {
     const filters = { effectiveFrom: { $gte: startDate, $lte: endDate },billerId: billerId };
-    return this.billRepository.findFiltered(filters);
+    const billFindFiltered= await this.billRepository.findFiltered(filters);
+    debug(`${className} Fetched ${billFindFiltered.length} number of bills for biller id: ${billerId}`)
+    return billFindFiltered
   }
 
 
@@ -49,7 +56,9 @@ export class BillsService {
 
   // ✅ Create a new bill
   async create(createBillDto: CreateBillDto): Promise<any> {
-    return this.billRepository.create(createBillDto);
+    const billCreate= await this.billRepository.create(createBillDto);
+    debug(`${className} New Bill created for customer :${createBillDto.customer}`)
+    return billCreate
   }
 
   // ✅ Updating the bills , saving effective to date

@@ -1,9 +1,31 @@
+
+/**
+ * @file biller.service.ts
+ * @description This file contains the BillerService class which provides methods to manage billers in the system.
+ * The service includes functionalities to find, create, update, and authenticate billers.
+ * It also logs various actions performed on billers using the LogsService.
+ * 
+ * @module BillerService
+ * 
+ * @requires @nestjs/common
+ * @requires ./infrastructure/persistance/biller.repositories
+ * @requires ../logs/logs.service
+ * @requires ./dto/createBiller.dto
+ * @requires ./dto/filterBiller.dto
+ * @requires bcrypt
+ * @requires chalk
+ * @requires debug
+ */
+
 import { Injectable } from '@nestjs/common';
 import { BillerRepository } from './infrastructure/persistance/biller.repositories';
 import { LogsService } from '../logs/logs.service';
 import { CreateBillerDto } from './dto/createBiller.dto';
 import { FilterBillerDto } from './dto/filterBiller.dto';
 import * as bcrypt from 'bcrypt';
+import chalk from 'chalk';
+const debug = require('debug')('Donation:server');
+const className = chalk.redBright('Services --> Biller');
 
 @Injectable()
 export class BillerService {
@@ -49,14 +71,21 @@ export class BillerService {
     const biller = await this.billerRepository.findByEmail(email);
     if (!biller) {
       await this.logsService.create(`Failed login attempt for biller: ${email}`);
+      // ✅ Debugger
+      debug(`${className} Biller credential wrong email : ${email}`);
       return { message: 'Invalid credentials', status: 401 };
     }
 
     const matchPassword = await bcrypt.compare(password, biller.password);
     if (!matchPassword) {
       await this.logsService.create(`Failed login attempt for biller: ${email}`);
+      // ✅ Debugger
+      debug(`${className} Biller credential wrong password email :${email}`);
       return { message: 'Invalid credentials', status: 401 };
     }
+
+    // ✅ Debugger
+    debug(`${className} Biller login sucessfull email :${email}`,);
 
     await this.logsService.create(`Successful login for biller: ${email}`);
     return biller;

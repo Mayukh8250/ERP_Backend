@@ -1,5 +1,3 @@
-
-
 /**
  * @file This file contains the CustomerService class, which provides methods for managing customers
  * in the application. It includes functionalities to find all customers with optional filters, 
@@ -14,6 +12,9 @@ import { FilterCustomerDto } from './dto/filterCustomer.dto';
 import { LogsService } from '../logs/logs.service';
 import { CreateCustomerDomain } from './domain/create-customer.domain';
 import { Customer } from './insfrastructure/persistance/document/schema/customer.schema';
+import chalk from 'chalk';
+const debug = require('debug')('Donation:server');
+const className = chalk.red('Services --> Customer');
 
 @Injectable()
 export class CustomerService {
@@ -29,6 +30,9 @@ export class CustomerService {
     // ✅ Logs created
     await this.logsService.create(`Fetched ${customers.length} customers after filtering`);
 
+    // ✅ Debugger
+   
+      debug(`${className} Found :${customers.length} Numbers of customers details`);
     return customers;
   }
 
@@ -36,6 +40,10 @@ export class CustomerService {
   async findOne(filter: Partial<Customer>): Promise<Customer | null> {
     const customer = await this.customerRepository.findOne(filter);
 
+    // ✅ Debugger
+    if (customer) {
+      debug(`${className} Existing Customer found while uploading sheet Name : ${customer.customerName}`);
+    }
     return customer;
   }
 
@@ -45,6 +53,9 @@ export class CustomerService {
 
     // ✅ Logs created
     await this.logsService.create(`Created a customer Name: ${newCustomer.customerName}`);
+
+    // ✅ Debugger
+    debug(`${className} New Customer Created Name : ${newCustomer.customerName}`);
 
     return newCustomer;
   }

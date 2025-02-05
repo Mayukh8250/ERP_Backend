@@ -60,7 +60,7 @@ async findFilteredBill(
   @Query('billerId') billerId: string
 ): Promise<Bill[] | null> {
   try {
-    return await this.billsService.findFiltered(startDate, endDate, billerId);
+    return this.billsService.findFiltered(startDate, endDate, billerId);
   } catch (error) {
     console.error('Error fetching filtered bills:', error);
     throw new Error('Failed to fetch filtered bills');
