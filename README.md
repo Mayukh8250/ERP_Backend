@@ -1,99 +1,166 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Plutos ERP Backend API Documentation
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+# 🏢 Plutos ERP Backend
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Version 1.0 | February 2025
 
-## Description
+API for Donation and Offline Billers
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 🔐 Authentication Flow
 
-## Project setup
+### 1. Biller Login
 
-```bash
-$ npm install
+**Endpoint:** POST http://localhost:3000/biller/login/
+
+**Request Body:**
+
+```json
+{
+    "email": "mayukh@gmail.com",
+    "password": "123456"
+}
 ```
 
-## Compile and run the project
+**Response:**
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```json
+{
+    "_id": "679c600262ab7357d36b5a53",
+    "billerId": "NFPL00000NATZB",
+    "email": "mayukh@gmail.com",
+    "billerName": "Normal Finance",
+    "billerCategory": "offline",
+    "password": "$2b$10$6n.1Vs7QaGkv9LwZIdnsaemG6mdxfYO8OKdRhNf92t3eVe5dSRhRy",
+    "__v": 0
+}
 ```
 
-## Run tests
+<aside>
+⚠️ Important: Store billerId in frontend state management (Redux) for subsequent requests
 
-```bash
-# unit tests
-$ npm run test
+</aside>
 
-# e2e tests
-$ npm run test:e2e
+## 👥 Customer Management
 
-# test coverage
-$ npm run test:cov
+### 1. Get Customer Details
+
+**Endpoint:** GET http://localhost:3000/customer/
+
+**Request Body:**
+
+```json
+{
+    "billerId": "RFPL00000NATZB"
+}
 ```
 
-## Deployment
+### 2. File Upload 📤
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+**Endpoint:** POST http://localhost:3000/customer/upload/${billerId}
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+**Body:** Form-data with file attachment
 
-```bash
-$ npm install -g mau
-$ mau deploy
+Description:
+
+- Uploads customer file using billerId
+- Extracts and saves customer data with current bills
+- Automatically expires old bills for existing customers
+
+## 📃 Bill Management
+
+### 1. Get Bills
+
+**Endpoint:** GET http://localhost:3000/bills/${customerId}
+
+**Request Body:**
+
+```json
+{
+    "expired": true/false
+}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Description:
 
-## Resources
+- Set expired=true to retrieve expired bills
+- Set expired=false to retrieve active bills
 
-Check out a few resources that may come in handy when working with NestJS:
+### 2. Filter Bills by Date Range
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+**Endpoint:** GET http://localhost:3000/bills
 
-## Support
+**Request Body:**
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```json
+{
+    "startDate": "2025-02-02",
+    "endDate": "2025-02-04",
+    "billerId": "RFPL00000NATZB"
+}
+```
 
-## Stay in touch
+## 💱 Transaction Flow
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### 1. Create Transaction
 
-## License
+**Endpoint:** POST http://localhost:3000/transaction/
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+**Request Body:**
+
+```json
+{
+    "amount": "${amount}",
+    "type": "${type}",
+    "billerId": "${billerId}",
+    "customerIdentifier": "${customerIdentifier}",
+    "transactionRefId": "${transactionRefId}",
+    "refId": "${refId}"
+}
+```
+
+### 2. Get Transactions
+
+**Endpoint:** GET http://localhost:3000/transaction/
+
+**Request Body:**
+
+```json
+{
+    "billerId": "RFPL00000NATZB"
+}
+```
+
+## System Architecture Diagram
+
+```mermaid
+%%{init: {'theme':'default', 'themeVariables': { 'primaryColor': '#ff7f50', 'primaryTextColor': '#fff', 'primaryBorderColor': '#ff6347', 'lineColor': '#f08080', 'secondaryColor': '#4169e1', 'tertiaryColor': '#32cd32'}}}%%
+graph TD
+    A[Client] --> B[Authentication API]
+    B --> C[Biller Login]
+    A --> D[Customer Management]
+    D --> E[Get Customer Details]
+    D --> F[File Upload]
+    A --> G[Bill Management]
+    G --> H[Get Bills]
+    G --> I[Filter Bills by Date]
+    A --> J[Transaction API]
+    J --> K[Create Transaction]
+    J --> L[Get Transactions]
+    
+    style A fill:#ff7f50,stroke:#ff6347,color:#fff
+    style B fill:#4169e1,stroke:#4169e1,color:#fff
+    style C fill:#32cd32,stroke:#32cd32,color:#fff
+    style D fill:#4169e1,stroke:#4169e1,color:#fff
+    style E fill:#32cd32,stroke:#32cd32,color:#fff
+    style F fill:#32cd32,stroke:#32cd32,color:#fff
+    style G fill:#4169e1,stroke:#4169e1,color:#fff
+    style H fill:#32cd32,stroke:#32cd32,color:#fff
+    style I fill:#32cd32,stroke:#32cd32,color:#fff
+    style J fill:#4169e1,stroke:#4169e1,color:#fff
+    style K fill:#32cd32,stroke:#32cd32,color:#fff
+    style L fill:#32cd32,stroke:#32cd32,color:#fff
+```
+
+## 📞 Support
+
+For technical assistance, please contact the Plutos Technical Team.
