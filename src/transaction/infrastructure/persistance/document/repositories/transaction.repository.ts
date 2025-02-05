@@ -25,8 +25,8 @@ export class TransactionDocumentRepository implements TransactionRepository {
   }
 
   // ✅ Retrieve a transaction by ID
-  async findById(id: string): Promise<Transaction | null> {
-    return this.transactionModel.findById(id).populate('customer').populate('biller').exec();
+  async findById(billerId: string): Promise<Transaction[] | null> {
+    return this.transactionModel.find({billerId:billerId}).populate('customer').populate('biller').exec();
   }
 
   // ✅ Update a transaction by ID

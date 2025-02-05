@@ -28,7 +28,7 @@ export class Transaction {
     @Prop({ required: false })
     billerId:String;
 
-    @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Customer', required: true })
+    @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Customer', required: false })
     customer: Customer;
 
     @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Biller', required: true })

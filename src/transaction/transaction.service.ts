@@ -27,7 +27,12 @@ export class TransactionService {
       customerIdentifier: createTransactionDto.customerIdentifier,
     });
 
-    if (!customer) throw new Error('Customer not found');
+    if (!customer) {
+      return this.transactionRepository.create({
+        ...createTransactionDto,
+        biller: biller._id,
+      });
+    };
 
     // ✅ Create the transaction with references
     return this.transactionRepository.create({

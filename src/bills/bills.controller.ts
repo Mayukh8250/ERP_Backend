@@ -5,7 +5,7 @@
  **/
 import { Controller } from '@nestjs/common';
 import { Bill } from './infrastructure/persistance/document/schema/bill.schema'; // Adjust the import path as necessary
-import { Get, Post, Body, Param } from '@nestjs/common';
+import { Get, Post, Body, Param ,Query} from '@nestjs/common';
 import { BillsService } from './bills.service';
 import { CreateBillDto } from './dto/createBill.dto';
 
@@ -54,15 +54,17 @@ export class BillsController {
  
   // ✅ Get filtered bills within a date range
   @Get()
-  async findFilteredBill(
-    @Body() body: { startDate: string; endDate: string, billerId: string }
-  ): Promise<Bill[] | null> {
-    try {
-      return await this.billsService.findFiltered(body.startDate, body.endDate, body.billerId);
-    } catch (error) {
-      console.error('Error fetching filtered bills:', error);
-      throw new Error('Failed to fetch filtered bills');
-    }
+async findFilteredBill(
+  @Query('startDate') startDate: string,
+  @Query('endDate') endDate: string,
+  @Query('billerId') billerId: string
+): Promise<Bill[] | null> {
+  try {
+    return await this.billsService.findFiltered(startDate, endDate, billerId);
+  } catch (error) {
+    console.error('Error fetching filtered bills:', error);
+    throw new Error('Failed to fetch filtered bills');
   }
+}
   
 }
