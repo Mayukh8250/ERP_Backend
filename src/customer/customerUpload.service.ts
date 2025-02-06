@@ -1,12 +1,3 @@
-/**
- * @fileoverview This service handles the uploading and processing of customer data from an Excel file.
- * It includes methods for extracting data from the file, mapping customer data according to the biller,
- * checking if a customer already exists or creating a new one, and creating bills for the customers.
- * The service processes the data in batches to handle large files efficiently.
- *
- * @module CustomerUploadService
- */
-
 import { Injectable } from '@nestjs/common';
 import * as XlsxPopulate from 'xlsx-populate';
 import { CreateCustomerDto } from './dto/createCustomer.dto';
@@ -29,61 +20,76 @@ export class CustomerUploadService {
     private readonly billsService: BillsService,
   ) {}
 
-  // Uploads customer data from an Excel file, processes it in batches, and creates or updates customer records and their associated bills.
+  // Uploads customer data from an Excel file, processes it in parallel batches, and creates or updates customer records and their associated bills.
   async uploadCustomers(
     billerId: string,
     file: Express.Multer.File,
   ): Promise<any[]> {
     const customersData = await this.extractDataFromXlsx(file);
-
-    //console.log("debug-1",customersData)
     let count = 0;
     const batchSize = 1000;
     const createdCustomers: { customer: any; bill: CreateBillDto }[] = [];
 
-    /*
-      ✅ This loops over customer data, first checks if the customer exists; if not, then creates one.
-      Otherwise, it creates a bill and binds it with the customer, and also expires the old bills.
-    */
+    // Divide data into batches
+    // Declare the batches array with an explicit type
+    const batches: any[][] = [];
+
     for (let i = 0; i < customersData.length; i += batchSize) {
-      count++;
       const batch = customersData.slice(i, i + batchSize);
-      const batchResults = await Promise.all(
-        batch.map(async (customerData) => {
-          const createCustomerDto = this.mapCustomerData(
-            billerId,
-            customerData,
-          );
-          //  console.log("debug imp",createCustomerDto)
-          const customer = await this.findOrCreateCustomer(createCustomerDto);
-          await this.billsService.updateMany(
-            { customer: customer.id },
-            { expired: true },
-          );
-          const createdBill = await this.createBill(
-            billerId,
-            createCustomerDto,
-            customer.id,
-          );
-          const updatedBills = [...customer.bills, createdBill.id];
-          await this.customerService.update(customer.id, {
-            bills: updatedBills,
-          });
-          return { customer, bill: createdBill };
-        }),
-      );
-      console.log('--running--', count);
-      // ✅ Debugger
-      debug(
-        `${className} Numbers of customer and bills processed is :${count * 1000}`,
-      );
-      createdCustomers.push(...batchResults); // Add batch results to the final array
+      batches.push(batch); // Now this should work without error
     }
+
+    // Run batches concurrently using Promise.all
+    const batchResults = await Promise.all(
+      batches.map(async (batch, index) => {
+        count++;
+        const batchResults = await this.processBatch(batch, billerId); // Process each batch
+        console.log(`Batch #${count} processed successfully`);
+        debug(
+          `${className} Numbers of customers and bills processed so far: ${count * batchSize}`,
+        );
+        return batchResults;
+      }),
+    );
+
+    // Flatten the results from each batch
+    batchResults.forEach((batchResult) => {
+      createdCustomers.push(...batchResult);
+    });
 
     return createdCustomers;
   }
 
-  // ✅ Mapping customer data according to biller
+  // New method to process batches in the background
+  async processBatch(batch: any[], billerId: string): Promise<any[]> {
+    const createdCustomers: { customer: any; bill: CreateBillDto }[] = [];
+    for (const customerData of batch) {
+      const createCustomerDto = this.mapCustomerData(billerId, customerData);
+      const customer = await this.findOrCreateCustomer(createCustomerDto);
+
+      // Expire old bills for the customer
+      await this.billsService.updateMany(
+        { customer: customer.id },
+        { expired: true },
+      );
+
+      // Create new bill for the customer
+      const createdBill = await this.createBill(
+        billerId,
+        createCustomerDto,
+        customer.id,
+      );
+
+      // Update customer with the new bill reference
+      const updatedBills = [...customer.bills, createdBill.id];
+      await this.customerService.update(customer.id, { bills: updatedBills });
+
+      createdCustomers.push({ customer, bill: createdBill });
+    }
+    return createdCustomers;
+  }
+
+  // Mapping customer data according to biller
   private mapCustomerData(
     billerId: string,
     customerData: any,
@@ -98,13 +104,13 @@ export class CustomerUploadService {
     }
   }
 
-  // ✅ Checking customer already exist or not
+  // Checking if customer already exists or not
   private async findOrCreateCustomer(createCustomerDto: CreateCustomerDto) {
     let customer = await this.customerService.findOne({
       customerIdentifier: createCustomerDto.customerIdentifier,
     });
 
-    // ✅  If customer dont exist then create a new customer
+    // If customer doesn't exist, create a new customer
     if (!customer) {
       customer = await this.customerService.create(createCustomerDto);
     }
@@ -112,7 +118,7 @@ export class CustomerUploadService {
     return customer;
   }
 
-  // ✅ Creating bill with corresponding data
+  // Creating bill with corresponding data
   private async createBill(
     billerId: string,
     customerDto: CreateCustomerDto,
@@ -141,7 +147,7 @@ export class CustomerUploadService {
     return createdBill as unknown as CreateBillDto;
   }
 
-  // ✅ Extract data from file
+  // Extract data from the Excel file
   private async extractDataFromXlsx(file: Express.Multer.File): Promise<any[]> {
     const workbook = await XlsxPopulate.fromDataAsync(file.buffer);
     const sheet = workbook.sheet(0);
@@ -162,7 +168,7 @@ export class CustomerUploadService {
       );
   }
 
-  // ✅ Format cell value to handle large numbers
+  // Format cell value to handle large numbers
   private formatCellValue(value: any): any {
     return typeof value === 'number' && value > 1e12 ? value.toString() : value;
   }

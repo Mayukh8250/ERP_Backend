@@ -1,5 +1,6 @@
 import * as dotenv from 'dotenv';
-dotenv.config();  // Make sure this is at the very top
+dotenv.config();  // Ensure environment variables are loaded at the top
+
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -9,19 +10,24 @@ import { TransactionModule } from './transaction/transaction.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { LogsModule } from './logs/logs.module';
 import { BillsModule } from './bills/bills.module';
-
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(
-      //'mongodb+srv://mayukh:1Singleshot@cluster0.wwbnx.mongodb.net/mydatabase',
-      process.env.MONGO_URL || ''
-  ),
-  CustomerModule, 
-  BillerModule, 
-  TransactionModule, 
-  LogsModule, 
-  BillsModule],
+    MongooseModule.forRoot(process.env.MONGO_URL || ''),  // MongoDB connection URL
+    BullModule.forRoot({
+      redis: {
+        host: process.env.REDIS_HOST || 'localhost',  // Redis host from .env or default to localhost
+        port:  6379,  // Redis port from .env or default to 6379
+        password: process.env.REDIS_PASSWORD || '',  // Optional Redis password
+      },
+    }),
+    CustomerModule, 
+    BillerModule, 
+    TransactionModule, 
+    LogsModule, 
+    BillsModule
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

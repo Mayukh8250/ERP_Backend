@@ -49,10 +49,17 @@ export class CustomerService {
 
   // ✅ Create a new customer
   async create(createCustomerDto: CreateCustomerDto): Promise<Customer> {
+    // Check if the customer already exists
+    const existingCustomer = await this.customerRepository.findOne({ customerIdentifier: createCustomerDto.customerIdentifier });
+    if (existingCustomer) {
+      throw new Error(`Customer with name ${createCustomerDto.customerName} already exists`);
+    }
+
+    // Create a new customer
     const newCustomer = await this.customerRepository.create(createCustomerDto);
 
-    // ✅ Logs created
-    await this.logsService.create(`Created a customer Name: ${newCustomer.customerName}`);
+    // // ✅ Logs created
+    // await this.logsService.create(`Created a customer Name: ${newCustomer.customerName}`);
 
     // ✅ Debugger
     debug(`${className} New Customer Created Name : ${newCustomer.customerName}`);
